@@ -39,6 +39,8 @@
 #include "simutil.h"
 #include "message.h"
 
+#include <stdio.h>
+
 #define uninitialized_var(x) x = x
 
 #define MESSAGE_MANAGER_FLAG_CACHED 0x1
@@ -1470,8 +1472,14 @@ void ofono_sms_deliver_notify(struct ofono_sms *sms, const unsigned char *pdu,
 	struct ofono_stk *stk;
 	struct sms s;
 	enum sms_class cls;
+	int i;
 
-	DBG("len %d tpdu len %d", len, tpdu_len);
+        DBG("len %d tpdu len %d", len, tpdu_len);
+
+	fprintf(stderr,"\n\nIncoming PDU dump: ");
+	for (i=0; i<len; i++)
+		fprintf(stderr,"%02x",pdu[i]);
+	fprintf(stderr,"\n\n");
 
 	if (!sms_decode(pdu, len, FALSE, tpdu_len, &s)) {
 		ofono_error("Unable to decode PDU");
