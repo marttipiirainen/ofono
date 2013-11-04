@@ -683,7 +683,8 @@ test_scripts = test/backtrace \
 		test/release-and-swap \
 		test/hold-and-answer \
 		test/hangup-multiparty \
-		test/hangup-call
+		test/hangup-call \
+		test/test-dtmf
 
 if TEST
 testdir = $(pkglibdir)/test
