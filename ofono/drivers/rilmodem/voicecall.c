@@ -612,6 +612,95 @@ static void clear_dtmf_queue(struct voicecall_data *vd)
 	vd->tone_pending = 0;
 }
 
+static void ril_start_dtmf_cb(struct ril_msg *message, gpointer user_data)
+{
+	struct voicecall_data *vd = user_data;
+	ofono_voicecall_cb_t cb = vd->cb;
+	struct ofono_error error;
+
+	DBG("");
+
+	if (message->error == RIL_E_SUCCESS) {
+		decode_ril_error(&error, "OK");
+	} else {
+		DBG("error=%d", message->error);
+		decode_ril_error(&error, "FAIL");
+	}
+	vd->tone_pending = 0; /* TODO piiramar check interactions */
+	cb(&error, vd->data);
+}
+
+static void ril_start_dtmf(struct ofono_voicecall *vc, char dtmf,
+		ofono_voicecall_cb_t cb, void *data) {
+
+	struct voicecall_data *vd = ofono_voicecall_get_data(vc);
+	struct parcel rilp;
+	gchar *ril_dtmf = g_try_malloc(sizeof(char) * 2);
+	int request = RIL_REQUEST_DTMF_START;
+	int ret;
+
+	DBG("Start '%c'",dtmf);
+
+	vd->cb = cb;
+
+	/* Ril wants just one character, but we need to send as string */
+	parcel_init(&rilp);
+	ril_dtmf[0] = dtmf;
+	ril_dtmf[1] = '\0';
+	parcel_w_string(&rilp, ril_dtmf);
+	ret = g_ril_send(vd->ril, request, rilp.data,
+			rilp.size, ril_start_dtmf_cb, vd, NULL);
+
+	vd->tone_pending = 1; /* TODO piiramar check interactions */
+
+	g_ril_append_print_buf(vd->ril, "(%s)", ril_dtmf);
+	g_ril_print_request(vd->ril, ret, request);
+	parcel_free(&rilp);
+	g_free(ril_dtmf);
+
+}
+
+static void ril_stop_dtmf_cb(struct ril_msg *message, gpointer user_data)
+{
+	struct voicecall_data *vd = user_data;
+	ofono_voicecall_cb_t cb = vd->cb;
+	struct ofono_error error;
+
+	DBG("");
+
+	if (message->error == RIL_E_SUCCESS) {
+		decode_ril_error(&error, "OK");
+	} else {
+		DBG("error=%d", message->error);
+		decode_ril_error(&error, "FAIL");
+	}
+	vd->tone_pending = 0; /* TODO piiramar check interactions */
+	cb(&error, vd->data);
+}
+
+static void ril_stop_dtmf(struct ofono_voicecall *vc,
+		ofono_voicecall_cb_t cb, void *data) {
+
+	struct voicecall_data *vd = ofono_voicecall_get_data(vc);
+	struct parcel rilp;
+	int request = RIL_REQUEST_DTMF_STOP;
+	int ret;
+
+	DBG("Stop");
+
+	vd->cb = cb;
+
+	parcel_init(&rilp);
+	ret = g_ril_send(vd->ril, request, rilp.data,
+			rilp.size, ril_stop_dtmf_cb, vd, NULL);
+
+	vd->tone_pending = 1; /* TODO piiramar check interactions */
+
+	g_ril_append_print_buf(vd->ril, "(stop)");
+	g_ril_print_request(vd->ril, ret, request);
+	parcel_free(&rilp);
+
+}
 
 static void multiparty_cb(struct ril_msg *message, gpointer user_data)
 {
@@ -823,6 +912,8 @@ static struct ofono_voicecall_driver driver = {
 	.hangup_all			= ril_hangup_all,
 	.release_specific		= ril_hangup_specific,
 	.send_tones			= ril_send_dtmf,
+	.start_tone			= ril_start_dtmf,
+	.stop_tone			= ril_stop_dtmf,
 	.create_multiparty		= ril_create_multiparty,
 	.private_chat			= ril_private_chat,
 	.swap_without_accept		= ril_swap_without_accept,
