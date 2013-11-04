@@ -133,6 +133,10 @@ struct ofono_voicecall_driver {
 			ofono_voicecall_cb_t cb, void *data);
 	void (*send_tones)(struct ofono_voicecall *vc, const char *tones,
 			ofono_voicecall_cb_t cb, void *data);
+	void (*start_tone)(struct ofono_voicecall *vc, char tone,
+			ofono_voicecall_cb_t cb, void *data);
+	void (*stop_tone)(struct ofono_voicecall *vc,
+			ofono_voicecall_cb_t cb, void *data);
 };
 
 void ofono_voicecall_en_list_notify(struct ofono_voicecall *vc,

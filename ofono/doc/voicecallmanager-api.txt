@@ -198,6 +198,27 @@ Methods		dict GetProperties()
 					 [service].Error.InvalidFormat
 					 [service].Error.Failed
 
+		void StartTone(string tone)
+
+			Start sending a DTMF tone to the network.  It will be
+			played until StopTone() is called, or until the next
+			StartTone() or SendTones() request.  See SendTones() for
+			valid tone values.
+
+			Possible Errors: [service].Error.InProgress
+					 [service].Error.NotImplemented
+					 [service].Error.InvalidArguments
+					 [service].Error.InvalidFormat
+					 [service].Error.Failed
+
+		void StopTone()
+
+			Stop sending a DTMF tone to the network.
+
+			Possible Errors: [service].Error.InProgress
+					 [service].Error.NotImplemented
+					 [service].Error.Failed
+
 Signals		CallAdded(object path, dict properties)
 
 			Signal that is sent when a new call is added.  It

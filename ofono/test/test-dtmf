@@ -18,6 +18,12 @@ if (len(sys.argv) == 2):
 manager = dbus.Interface(bus.get_object('org.ofono', modem),
 						'org.ofono.VoiceCallManager')
 
+print "Start tone"
+manager.StartTone("1")
+time.sleep(2)
+print "Start tone"
+manager.StopTone()
+
 print "Play single tones from 0 to 9"
 zeroAscii = ord('0')
 for x in range(0, 9):

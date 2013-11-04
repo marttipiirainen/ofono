@@ -2088,6 +2088,95 @@ static DBusMessage *manager_tone(DBusConnection *conn,
 	return NULL;
 }
 
+static void start_tone_cb(const struct ofono_error *error, void *data)
+{
+	struct ofono_voicecall *vc = data;
+	DBusMessage *reply;
+
+	DBG("");
+	if (error && error->type != OFONO_ERROR_TYPE_NO_ERROR) {
+		DBG("command failed with error: %s",
+				telephony_error_to_str(error));
+		reply = __ofono_error_failed(vc->pending);
+	} else {
+		reply = dbus_message_new_method_return(vc->pending);
+	}
+
+	__ofono_dbus_pending_reply(&vc->pending, reply);
+}
+
+static DBusMessage *manager_start_tone(DBusConnection *conn,
+					DBusMessage *msg, void *data)
+{
+	struct ofono_voicecall *vc = data;
+	const char *in_tone;
+	char tone;
+
+	DBG("");
+
+	if (vc->pending)
+		return __ofono_error_busy(msg);
+
+	if (vc->driver->start_tone == NULL)
+		return __ofono_error_not_implemented(msg);
+
+	/* Send DTMFs only if we have at least one connected call */
+	if (!voicecalls_can_dtmf(vc))
+		return __ofono_error_failed(msg);
+
+	if (dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &in_tone,
+					DBUS_TYPE_INVALID) == FALSE)
+		return __ofono_error_invalid_args(msg);
+
+	if (strlen(in_tone) == 0)
+		return __ofono_error_invalid_format(msg);
+
+	tone = in_tone[0]; /* ignore rest of string */
+
+	vc->driver->start_tone(vc, tone, start_tone_cb, vc);
+
+	vc->pending = dbus_message_ref(msg);
+
+	return NULL;
+}
+
+static void stop_tone_cb(const struct ofono_error *error, void *data)
+{
+	struct ofono_voicecall *vc = data;
+	DBusMessage *reply;
+
+	DBG("");
+	if (error && error->type != OFONO_ERROR_TYPE_NO_ERROR) {
+		DBG("command failed with error: %s",
+				telephony_error_to_str(error));
+		reply = __ofono_error_failed(vc->pending);
+	} else {
+		reply = dbus_message_new_method_return(vc->pending);
+	}
+
+	__ofono_dbus_pending_reply(&vc->pending, reply);
+}
+
+static DBusMessage *manager_stop_tone(DBusConnection *conn,
+					DBusMessage *msg, void *data)
+{
+	struct ofono_voicecall *vc = data;
+
+	DBG("");
+
+	if (vc->pending)
+		return __ofono_error_busy(msg);
+
+	if (vc->driver->stop_tone == NULL)
+		return __ofono_error_not_implemented(msg);
+
+	vc->driver->stop_tone(vc, stop_tone_cb, vc);
+
+	vc->pending = dbus_message_ref(msg);
+
+	return NULL;
+}
+
 static DBusMessage *manager_get_calls(DBusConnection *conn,
 					DBusMessage *msg, void *data)
 {
@@ -2169,6 +2258,12 @@ static const GDBusMethodTable manager_methods[] = {
 	{ GDBUS_ASYNC_METHOD("SendTones",
 				GDBUS_ARGS({ "SendTones", "s" }), NULL,
 				manager_tone) },
+	{ GDBUS_ASYNC_METHOD("StartTone",
+				GDBUS_ARGS({ "Tone", "s" }), NULL,
+				manager_start_tone) },
+	{ GDBUS_ASYNC_METHOD("StopTone",
+				NULL, NULL,
+				manager_stop_tone) },
 	{ GDBUS_METHOD("GetCalls",
 		NULL, GDBUS_ARGS({ "calls_with_properties", "a(oa{sv})" }),
 		manager_get_calls) },
