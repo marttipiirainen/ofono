@@ -2259,7 +2259,7 @@ static const GDBusMethodTable manager_methods[] = {
 				GDBUS_ARGS({ "SendTones", "s" }), NULL,
 				manager_tone) },
 	{ GDBUS_ASYNC_METHOD("StartTone",
-				GDBUS_ARGS({ "Tone", "s" }), NULL,
+				GDBUS_ARGS({ "StartTone", "s" }), NULL,
 				manager_start_tone) },
 	{ GDBUS_ASYNC_METHOD("StopTone",
 				NULL, NULL,

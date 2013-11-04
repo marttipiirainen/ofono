@@ -642,6 +642,7 @@ static void ril_start_dtmf(struct ofono_voicecall *vc, char dtmf,
 	DBG("Start '%c'",dtmf);
 
 	vd->cb = cb;
+	vd->data = vc;
 
 	/* Ril wants just one character, but we need to send as string */
 	parcel_init(&rilp);
@@ -689,6 +690,7 @@ static void ril_stop_dtmf(struct ofono_voicecall *vc,
 	DBG("Stop");
 
 	vd->cb = cb;
+	vd->data = vc;
 
 	parcel_init(&rilp);
 	ret = g_ril_send(vd->ril, request, rilp.data,
