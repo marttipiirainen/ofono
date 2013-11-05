@@ -21,7 +21,7 @@ manager = dbus.Interface(bus.get_object('org.ofono', modem),
 print "Start tone"
 manager.StartTone("1")
 time.sleep(2)
-print "Start tone"
+print "Stop tone"
 manager.StopTone()
 
 print "Play single tones from 0 to 9"
