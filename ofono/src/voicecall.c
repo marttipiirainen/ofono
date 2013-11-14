@@ -25,7 +25,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <stdint.h>
 
@@ -75,6 +75,7 @@ struct ofono_voicecall {
 	ofono_voicecall_cb_t release_queue_done_cb;
 	struct ofono_emulator *pending_em;
 	unsigned int pending_id;
+	struct timeval *request_start_time;
 };
 
 struct voicecall {
@@ -2102,6 +2103,14 @@ static void start_tone_cb(const struct ofono_error *error, void *data)
 		reply = dbus_message_new_method_return(vc->pending);
 	}
 
+	static struct timeval tmp_time;
+	static struct timeval tmp_time2;
+	gettimeofday(&tmp_time, NULL);
+	DBG("piiramar start resp at %lds %ldus",tmp_time.tv_sec,tmp_time.tv_usec);
+	timersub(&tmp_time, vc->request_start_time, &tmp_time2);
+	DBG("piiramar start took %lds %ldus",tmp_time2.tv_sec,tmp_time2.tv_usec);
+	vc->request_start_time = NULL;
+
 	__ofono_dbus_pending_reply(&vc->pending, reply);
 }
 
@@ -2114,8 +2123,15 @@ static DBusMessage *manager_start_tone(DBusConnection *conn,
 
 	DBG("");
 
-	if (vc->pending)
+	if (vc->pending) {
+		DBG("piiramar start req not done, busy");
 		return __ofono_error_busy(msg);
+	}
+
+	static struct timeval tmp_time;
+	gettimeofday(&tmp_time, NULL);
+	DBG("piiramar start req at %lds %ldus",tmp_time.tv_sec,tmp_time.tv_usec);
+	vc->request_start_time = &tmp_time;
 
 	if (vc->driver->start_tone == NULL)
 		return __ofono_error_not_implemented(msg);
@@ -2153,6 +2169,13 @@ static void stop_tone_cb(const struct ofono_error *error, void *data)
 	} else {
 		reply = dbus_message_new_method_return(vc->pending);
 	}
+	static struct timeval tmp_time;
+	static struct timeval tmp_time2;
+	gettimeofday(&tmp_time, NULL);
+	DBG("piiramar stop resp at %lds %ldus",tmp_time.tv_sec,tmp_time.tv_usec);
+	timersub(&tmp_time, vc->request_start_time, &tmp_time2);
+	DBG("piiramar stop took %lds %ldus",tmp_time2.tv_sec,tmp_time2.tv_usec);
+	vc->request_start_time = NULL;
 
 	__ofono_dbus_pending_reply(&vc->pending, reply);
 }
@@ -2164,8 +2187,15 @@ static DBusMessage *manager_stop_tone(DBusConnection *conn,
 
 	DBG("");
 
-	if (vc->pending)
+	if (vc->pending) {
+		DBG("piiramar stop req not done, busy");
 		return __ofono_error_busy(msg);
+	}
+
+	static struct timeval tmp_time;
+	gettimeofday(&tmp_time, NULL);
+	DBG("piiramar stop req at %lds %ldus",tmp_time.tv_sec,tmp_time.tv_usec);
+	vc->request_start_time = &tmp_time;
 
 	if (vc->driver->stop_tone == NULL)
 		return __ofono_error_not_implemented(msg);
