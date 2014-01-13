@@ -62,6 +62,8 @@ static void lookup_apn(const char *match_mcc, const char *match_mnc,
 		g_print("Type: %s\n", mbpi_ap_type(ap->type));
 		g_print("Username: %s\n", ap->username);
 		g_print("Password: %s\n", ap->password);
+		g_print("MMS proxy: %s\n", ap->message_proxy);
+		g_print("MMS center: %s\n", ap->message_center);
 
 		mbpi_ap_free(ap);
 	}

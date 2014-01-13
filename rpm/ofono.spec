@@ -79,6 +79,7 @@ autoreconf --force --install
 %configure --disable-static \
     --enable-dundee \
     --enable-test \
+    --enable-tools \
     --with-systemdunitdir="/%{_lib}/systemd/system"
 
 make %{?jobs:-j%jobs}
