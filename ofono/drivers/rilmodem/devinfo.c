@@ -139,7 +139,7 @@ static void query_serial_cb(struct ril_msg *message, gpointer user_data)
 	ril_util_init_parcel(message, &rilp);
 
 	imei = parcel_r_string(&rilp);
-
+	ofono_info("IMEISV = %s", imei);
 	cb(&error, imei, cbd->data);
 }
 
@@ -151,7 +151,7 @@ static void ril_query_serial(struct ofono_devinfo *info,
 	GRil *ril = ofono_devinfo_get_data(info);
 	/* TODO: make it support both RIL_REQUEST_GET_IMEI (deprecated) and
 	 * RIL_REQUEST_DEVICE_IDENTITY depending on the rild version used */
-	int request = RIL_REQUEST_GET_IMEI;
+	int request = RIL_REQUEST_GET_IMEISV;
 	int ret;
 
 	ret = g_ril_send(ril, request, NULL, 0,
