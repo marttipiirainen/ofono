@@ -191,6 +191,10 @@ static void ril_cmgs(struct ofono_sms *sms, const unsigned char *pdu,
 	int request = RIL_REQUEST_SEND_SMS;
 	int ret, smsc_len;
 
+	ofono_error("###piiramar###: hard-coded failure");
+	CALLBACK_WITH_FAILURE(cb, -1, user_data);
+	return;
+
 	cbd->user = sd;
 
 	DBG("pdu_len: %d, tpdu_len: %d mms: %d", pdu_len, tpdu_len, mms);

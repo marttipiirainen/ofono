@@ -101,6 +101,7 @@ static void sms_history_sms_send_status(
 					enum ofono_history_sms_status s)
 {
 	DBG("");
+	DBG("piiramar sending sms, status=%d",s);
 
 	if (!sms_history_ensure_interface(context->modem))
 		return;
